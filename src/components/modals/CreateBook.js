@@ -1,11 +1,23 @@
-import React, {useContext, useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {Modal, Button, Form, Dropdown, Row, Col} from "react-bootstrap";
 import {Context} from "../../index";
+import {createBook, fetchAuthors, fetchBooks, fetchTypes} from "../../http/bookAPI";
+import {observer} from "mobx-react-lite";
 
 
-const CreateBook = ({show, onHide}) => {
+const CreateBook = observer(({show, onHide}) => {
     const {books} = useContext(Context);
+    const [name, setName] = useState('');
+    const [price, setPrice] = useState(0);
+    const [file, setFile] = useState(null);
+    const [author, setAuthor] = useState(null);
+    const [type, setType] = useState(null);
     const [info, setInfo] = useState([]);
+
+    useEffect(() => {
+        fetchTypes().then(data => books.setTypes(data));
+        fetchAuthors().then(data => books.setAuthors(data));
+    }, []);
 
     const addInfo = () => {
         setInfo([...info, {title: '', description: '', number: Date.now()}]);
@@ -13,6 +25,25 @@ const CreateBook = ({show, onHide}) => {
 
     const removeInfo = (number) => {
         setInfo(info.filter(i => i.number !== number));
+    }
+
+    const changeInfo = (key, value, number) => {
+        setInfo(info.map(i => i.number === number ? {...i, [key]: value} : i));
+    }
+
+    const selectFile = e => {
+        setFile(e.target.files[0]);
+    }
+
+    const addBook = () => {
+        const formData = new FormData();
+        formData.append('name', name);
+        formData.append('price', `${price}`);
+        formData.append('img', file);
+        formData.append('authorId', books.selectedAuthor.id);
+        formData.append('typeId', books.selectedType.id);
+        formData.append('info', JSON.stringify(info));
+        createBook(formData).then(data => onHide());
     }
 
     return (
@@ -30,10 +61,13 @@ const CreateBook = ({show, onHide}) => {
             <Modal.Body>
                 <Form>
                     <Dropdown className='mt-2'>
-                        <Dropdown.Toggle>Выберите тип</Dropdown.Toggle>
+                        <Dropdown.Toggle>
+                            {books.selectedType.name || 'Выберите тип'}
+                        </Dropdown.Toggle>
                         <Dropdown.Menu>
                             {books.types.map(type =>
                             <Dropdown.Item
+                                onClick={() => books.setSelectedType(type)}
                                 key={type.id}
                             >
                                 {type.name}
@@ -41,10 +75,13 @@ const CreateBook = ({show, onHide}) => {
                         </Dropdown.Menu>
                     </Dropdown>
                     <Dropdown className='mt-2'>
-                        <Dropdown.Toggle>Выберите автора</Dropdown.Toggle>
+                        <Dropdown.Toggle>
+                            {books.selectedAuthor.name || 'Выберите автора'}
+                        </Dropdown.Toggle>
                         <Dropdown.Menu>
                             {books.authors.map(author =>
                                 <Dropdown.Item
+                                    onClick={() => books.setSelectedAuthor(author)}
                                     key={author.id}
                                 >
                                     {author.name}
@@ -53,14 +90,22 @@ const CreateBook = ({show, onHide}) => {
                     </Dropdown>
                     <Form.Control
                         className='mt-3'
-                        placeholder='Введите название книги' />
+                        placeholder='Введите название книги'
+                        value={name}
+                        onChange={e => setName(e.target.value)}
+                    />
                     <Form.Control
                         className='mt-3'
                         placeholder='Введите стоимость книги'
-                        type='number'/>
+                        type='number'
+                        value={price}
+                        onChange={e => setPrice(Number(e.target.value))}
+                    />
                     <Form.Control
                         className='mt-3'
-                        type='file'/>
+                        type='file'
+                        onChange={selectFile}
+                    />
                     <hr/>
                     <Button
                         variant='outline-dark'
@@ -71,10 +116,16 @@ const CreateBook = ({show, onHide}) => {
                     {info.map(i =>
                         <Row className='mt-2' key={i.number}>
                             <Col md={4}>
-                                <Form.Control placeholder='Введите название' />
+                                <Form.Control
+                                    value={i.title}
+                                    onChange={e => changeInfo('title', e.target.value, i.number)}
+                                    placeholder='Введите название' />
                             </Col>
                             <Col md={4}>
-                                <Form.Control placeholder='Введите описание' />
+                                <Form.Control
+                                    value={i.description}
+                                    onChange={e => changeInfo('description', e.target.value, i.number)}
+                                    placeholder='Введите описание' />
                             </Col>
                             <Col md={4}>
                                 <Button
@@ -97,13 +148,13 @@ const CreateBook = ({show, onHide}) => {
                 </Button>
                 <Button
                     variant='outline-success'
-                    onClick={onHide}
+                    onClick={addBook}
                 >
                     Добавить
                 </Button>
             </Modal.Footer>
         </Modal>
     );
-};
+});
 
 export default CreateBook;

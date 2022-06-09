@@ -1,19 +1,22 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {Card, Col, Container, Image, Row, Button} from "react-bootstrap";
 import BigStar from '../assets/StarBig.png'
+import {useParams} from "react-router-dom";
+import {fetchOneBook} from "../http/bookAPI";
 
 const BookPage = () => {
-    const book = {id: 1, name: 'Кровь Бога. Книга первая', price: 399, rating: 5, img: 'f9f4462b-f93d-4510-89f8-bb3706ed7438.jpg'};
-    const description = [{
-        id: 1,
-        title: 'Аннотация',
-        description: 'Са́реф — молодой успешный человек, который погибает в родном мире. Необъяснимым способом перерождается в теле более молодого человека в совершенно другом мире, где существуют магия и различные создания из сказок прежнего мира. Насильственно Са́рефа подвергают инициации, и теперь он является природным врагом людей и других рас. Герой становится вампиром и должен выжить в новом мире, где в этом поможет пытливый ум и странная Система. Но помимо вопроса выживания перед ним вскоре встанут моральные дилеммы и приближающаяся катастрофа.'
-    }]
+    const [book, setBook] = useState({info: []});
+    const {id} = useParams();
+    console.log(book)
+    useEffect(() => {
+        fetchOneBook(id).then(data => setBook(data));
+    }, []);
+
     return (
         <Container className='mt-3'>
             <Row>
                 <Col md={4}>
-                    <Image width={300} height={300} src={book.img}/>
+                    <Image width={300} height={300} src={process.env.REACT_APP_API_URL + book.img}/>
                 </Col>
                 <Col md={4}>
                     <Row className='d-flex align-items-center flex-column'>
@@ -35,8 +38,8 @@ const BookPage = () => {
                 </Col>
             </Row>
             <Row className='d-flex flex-column'>
-                <h2>{description[0].title}</h2>
-                {description.map(info =>
+                <h2>{book.info[0]}</h2>
+                {book.info.map(info =>
                     <Row key={info.id}>
                          {info.description}
                     </Row>

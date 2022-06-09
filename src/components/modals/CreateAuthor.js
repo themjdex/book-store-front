@@ -1,8 +1,16 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {Modal, Button, Form} from "react-bootstrap";
+import {createAuthor, createType} from "../../http/bookAPI";
 
 
 const CreateAuthor = ({show, onHide}) => {
+    const [value, setValue] = useState('');
+    const addAuthor = () => {
+        createAuthor({name: value}).then(data => {
+            setValue('');
+            onHide();
+        })
+    }
     return (
         <Modal
             show={show}
@@ -17,7 +25,11 @@ const CreateAuthor = ({show, onHide}) => {
             </Modal.Header>
             <Modal.Body>
                 <Form>
-                    <Form.Control placeholder='Введите ФИО автора' />
+                    <Form.Control
+                        placeholder='Введите ФИО автора'
+                        value={value}
+                        onChange={e => setValue(e.target.value)}
+                    />
                 </Form>
             </Modal.Body>
             <Modal.Footer>
@@ -29,7 +41,7 @@ const CreateAuthor = ({show, onHide}) => {
                 </Button>
                 <Button
                     variant='outline-success'
-                    onClick={onHide}
+                    onClick={addAuthor}
                 >
                     Добавить
                 </Button>

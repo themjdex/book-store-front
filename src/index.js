@@ -18,7 +18,7 @@ root.render(
           books: new BookStore()
       }}>
           <BrowserRouter>
-              <NavBar />
+
               <App />
           </BrowserRouter>
       </Context.Provider>

@@ -1,8 +1,16 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {Modal, Button, Form} from "react-bootstrap";
+import {createType} from "../../http/bookAPI";
 
 
 const CreateType = ({show, onHide}) => {
+    const [value, setValue] = useState('');
+    const addType = () => {
+        createType({name: value}).then(data => {
+            setValue('');
+            onHide();
+        })
+    }
     return (
         <Modal
             show={show}
@@ -17,7 +25,11 @@ const CreateType = ({show, onHide}) => {
         </Modal.Header>
         <Modal.Body>
             <Form>
-                <Form.Control placeholder='Введите название типа' />
+                <Form.Control
+                    placeholder='Введите название типа'
+                    value={value}
+                    onChange={e => setValue(e.target.value)}
+                />
             </Form>
         </Modal.Body>
         <Modal.Footer>
@@ -29,7 +41,7 @@ const CreateType = ({show, onHide}) => {
             </Button>
             <Button
                 variant='outline-success'
-                onClick={onHide}
+                onClick={addType}
             >
                 Добавить
             </Button>
